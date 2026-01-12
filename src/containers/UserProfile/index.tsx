@@ -1,42 +1,37 @@
-import { useMemo, useCallback, useState } from 'react';
+import { useState } from 'react';
 import { useGetUserProfile } from './hooks/useGetUserProfile';
 
 /**
- * TASK 1: Review this component and remove unnecessary useMemo/useCallback
+ * COMMIT 1: Removed unnecessary useMemo/useCallback hooks
  * 
- * Many of these optimizations are premature and don't provide actual benefits.
- * Remove the ones that aren't needed and explain why in comments.
+ * Why removed:
+ * - useMemo for string concatenation adds overhead that outweighs benefit
+ * - useCallback for button handlers not passed to memoized children
+ * 
+ * Trade-off: Slight increase in string allocations per render (negligible)
  */
 const UserProfile = () => {
   const { data: user, isLoading } = useGetUserProfile();
   const [localCounter, setLocalCounter] = useState(0);
 
-  // This is memoized but only used in render - is this necessary?
-  const userName = useMemo(() => {
-    if (!user) return 'Loading...';
-    return `${user.firstName} ${user.lastName}`;
-  }, [user]);
+  // String concatenation is cheap - no need for useMemo
+  const userName = !user ? 'Loading...' : `${user.firstName} ${user.lastName}`;
 
-  // This callback is passed to a native element - is memoization needed?
-  const handleClick = useCallback(() => {
+  // Direct function - not passed to memoized children
+  const handleClick = () => {
     setLocalCounter((prev) => prev + 1);
-  }, []);
+  };
 
-  // This is a simple string concatenation - does it need memoization?
-  const displayName = useMemo(() => {
-    return user ? `${user.firstName} ${user.lastName}` : 'Guest';
-  }, [user]);
+  // Simple ternary - no need for useMemo
+  const displayName = user ? `${user.firstName} ${user.lastName}` : 'Guest';
 
-  // This is memoized but the dependency is stable - is this needed?
-  const userInitials = useMemo(() => {
-    if (!user) return '??';
-    return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
-  }, [user?.firstName, user?.lastName]);
+  // Helper function for initials - still fast, no need for memoization
+  const userInitials = !user ? '??' : `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
 
-  // This callback is only used once and not passed as prop - needed?
-  const handleNameClick = useCallback(() => {
+  // Direct function - only used once, not passed as prop
+  const handleNameClick = () => {
     console.log('Name clicked:', displayName);
-  }, [displayName]);
+  };
 
   if (isLoading) {
     return <div>Loading profile...</div>;
