@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { getTicketKeys } from '../_api/queryKeys';
+import { ticketKeys } from '../../../api/tickets/queryKeys';
 
 export interface Ticket {
   id: string;
@@ -14,7 +14,7 @@ interface UseTicketListParams {
 
 export const useTicketList = (params: UseTicketListParams = {}) => {
   return useQuery({
-    queryKey: getTicketKeys.list(params.status),
+    queryKey: ticketKeys.list({ status: params.status }),
     // queryFn with explicit Promise<Ticket[]> return type for TypeScript inference
     // Without this type annotation, TypeScript treats 'data' as unknown/{}
     // which causes "Property 'filter' does not exist on type '{}'" errors

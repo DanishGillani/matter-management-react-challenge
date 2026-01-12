@@ -179,3 +179,55 @@
 | Keep circular refetch effect | React Query handles this automatically |
 | Keep useMemo for memoizedSearchQuery | String operations negligible cost |
 
+## Commit 4: Centralize and Type-Safe Query Keys
+
+### Implementation Details
+
+**Files Created:**
+- `src/api/tickets/queryKeys.ts` (NEW - centralized query key factory)
+
+**Files Modified:**
+- `src/containers/TicketList/hooks/useTicketList.ts`
+- `src/containers/UserProfile/hooks/useGetUserProfile.ts`
+- `src/containers/TicketsPage/index.tsx`
+
+**Files Deleted:**
+- `src/containers/TicketList/_api/queryKeys.ts` (OLD - replaced)
+
+**Changes Made:**
+- ✅ Created centralized query key factory
+- ✅ Implemented hierarchical, type-safe structure
+- ✅ Updated all hooks to use centralized keys
+- ✅ Updated TicketsPage to use centralized keys
+- ✅ Deleted old scattered query keys
+
+### The Problem (Before)
+
+- Query keys scattered in multiple files
+- Inconsistent naming and structure
+- Hard to find and refactor queries
+- Limited type safety
+
+### The Solution (After)
+
+- Single centralized factory at src/api/tickets/queryKeys.ts
+- Hierarchical, type-safe key structure
+- All hooks use same factory
+- Easy to refactor entire app at once
+
+### Testing Results
+
+**Lint Check:**
+- ✅ All components pass lint (zero errors)
+- ✅ TypeScript compilation successful
+
+**Manual Testing:**
+- ✅ `/user-profile` loads correctly
+- ✅ `/ticket-list` loads correctly
+- ✅ `/tickets` loads correctly
+- ✅ Search, filter, sort work
+- ✅ Ticket detail loads
+- ✅ No console errors
+
+
+

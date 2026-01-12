@@ -15,6 +15,7 @@ import { useQuery } from '@tanstack/react-query';
 import TicketList from '../../components/TicketList';
 import TicketDetail from '../../components/TicketDetail';
 import { fetchTickets, fetchTicketById } from '../../utils/api';
+import { ticketKeys } from '../../api/tickets/queryKeys';
 
 /**
  * COMMIT 3: Remove premature optimizations from TicketsPage
@@ -61,7 +62,12 @@ const TicketsPage = () => {
   // Fetch tickets - API handles filtering/sorting via queryKey
   // No need to filter in frontend when server already does this
   const { data: ticketsData, isLoading } = useQuery({
-    queryKey: ['tickets', searchQuery, filterStatus, sortBy],
+    // Use centralized query key factory
+    queryKey: ticketKeys.list({ 
+      search: searchQuery, 
+      status: filterStatus, 
+      sortBy 
+    }),
     queryFn: () => fetchTickets({ 
       search: searchQuery, 
       status: filterStatus, 
@@ -78,7 +84,8 @@ const TicketsPage = () => {
 
   // Fetch ticket detail when selected
   const { data: ticketDetail, isLoading: isLoadingDetail } = useQuery({
-    queryKey: ['ticket', selectedTicketId],
+    // Use centralized query key factory
+    queryKey: ticketKeys.detail(selectedTicketId!),
     queryFn: () => fetchTicketById(selectedTicketId!),
     enabled: !!selectedTicketId,
   });
