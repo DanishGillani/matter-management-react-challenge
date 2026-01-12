@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useTicketList } from './hooks/useTicketList';
-import TicketCard from './components/TicketCard';
+import { useTicketList } from '../../hooks/tickets/useTicketList';
+import TicketCard from '../../components/tickets/TicketCard';
 
 /**
  * COMMIT 2: Fixed circular useEffect dependencies and derived state

@@ -1,8 +1,8 @@
 import { Routes, Route } from 'react-router-dom';
-import TicketsPage from './containers/TicketsPage';
-import TicketList from './containers/TicketList';
-import TicketFilters from './containers/TicketFilters';
-import UserProfile from './containers/UserProfile';
+import TicketsPage from './pages/tickets';
+import TicketList from './pages/ticket-list';
+import TicketFilters from './components/tickets/TicketFilters';
+import UserProfile from './pages/user-profile';
 
 function App() {
   return (

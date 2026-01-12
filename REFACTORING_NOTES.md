@@ -309,3 +309,99 @@
 4. **Verify Imports** - Check what other files depend on before deleting
 
 
+## Commit 6: Reorganize File Structure - Modern Feature-Based Organization
+
+### Implementation Details
+
+**Files Created:**
+- `src/pages/tickets/` (moved from containers)
+- `src/pages/ticket-list/` (moved from containers)
+- `src/pages/user-profile/` (moved from containers)
+- `src/hooks/tickets/` (new centralized hooks)
+- `src/hooks/user/` (new centralized hooks)
+
+**Files Moved:**
+- TicketsPage: `containers/TicketsPage/` → `pages/tickets/index.tsx`
+- TicketList page: `containers/TicketList/` → `pages/ticket-list/index.tsx`
+- UserProfile: `containers/UserProfile/` → `pages/user-profile/index.tsx`
+- TicketFilters: `containers/TicketFilters/` → `components/tickets/TicketFilters/`
+- TicketDetail: Already at `components/tickets/TicketDetail.tsx` ✓
+- TicketCard: Already at `components/tickets/TicketCard.tsx` ✓
+- useTicketList: Already at `hooks/tickets/useTicketList.ts` ✓
+- useGetUserProfile: `containers/UserProfile/hooks/` → `hooks/user/useGetUserProfile.ts`
+
+**Files Deleted:**
+- `src/containers/` (entire legacy directory - empty after moves)
+
+**Import Updates:**
+- Updated all route imports in [src/app.tsx](src/app.tsx)
+- Updated hook imports in [src/pages/user-profile/index.tsx](src/pages/user-profile/index.tsx)
+- Updated component imports in [src/pages/tickets/index.tsx](src/pages/tickets/index.tsx)
+- Fixed TicketDetail props in TicketsPage (removed unused ticketId prop)
+
+### The Problem (Before)
+
+**Legacy Container Structure:**
+- All components in scattered `containers/` directory
+- Hooks buried inside component directories
+- Query keys scattered across files
+- No clear separation of concerns
+- Difficult to navigate codebase
+- Hard to find and reuse code
+
+### The Solution (After)
+
+**Modern Feature-Based Organization:**
+- Pages organized by route/feature
+- Hooks centralized by feature in `hooks/`
+- Components grouped by feature in `components/`
+- Query keys centralized in `api/`
+- Single source of truth for each feature
+- Easy to locate related code
+- Scalable for future features
+
+**Why This Structure:**
+- Follows Next.js app directory patterns (modern standard)
+- Feature-based organization (tickets, user features grouped together)
+- Easier to onboard new developers
+- Clear import paths reflect functionality
+- Encourages code reuse and sharing
+
+### Testing Results
+
+**Lint Check:**
+- ✅ Zero lint errors after reorganization
+- ✅ All imports resolve correctly
+- ✅ No unused variables or imports
+- ✅ TypeScript compilation successful
+
+**Manual Testing (All Routes):**
+- ✅ `/` loads TicketsPage correctly
+- ✅ `/tickets` loads TicketsPage correctly
+- ✅ `/tickets/1` loads TicketsPage with URL param working
+- ✅ `/ticket-list` loads TicketList page correctly
+- ✅ `/ticket-filters` loads TicketFilters component correctly
+- ✅ `/user-profile` loads UserProfile page correctly
+
+**Feature Testing:**
+- ✅ TicketsPage: Search, filter, sort all work
+- ✅ TicketsPage: Ticket selection and detail display works
+- ✅ TicketsPage: Debounced search working (300ms delay)
+- ✅ TicketList page: Filter dropdown works
+- ✅ TicketList page: Notification count updates correctly
+- ✅ TicketFilters: Filter dropdown functional with useState
+- ✅ UserProfile: All interactive elements respond correctly
+- ✅ React Query: All queries use centralized keys
+
+**Import Verification:**
+- ✅ No imports from old `containers/` directory
+- ✅ All hooks imported from `hooks/` directory
+- ✅ All components imported from `components/` directory
+- ✅ All pages imported from `pages/` directory
+- ✅ All query keys imported from `api/` directory
+
+**Browser Testing:**
+- ✅ No console errors
+- ✅ No console warnings
+- ✅ All network requests working correctly
+- ✅ Responsive layout working on all routes

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useGetUserProfile } from './hooks/useGetUserProfile';
+import { useGetUserProfile } from '../../hooks/user/useGetUserProfile';
 
 /**
  * COMMIT 1: Removed unnecessary useMemo/useCallback hooks

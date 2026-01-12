@@ -12,8 +12,8 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import TicketList from '../../components/TicketList';
-import TicketDetail from '../../components/TicketDetail';
+import TicketList from '../../components/tickets/TicketList';
+import TicketDetail from '../../components/tickets/TicketDetail';
 import { fetchTickets, fetchTicketById } from '../../utils/api';
 import { ticketKeys } from '../../api/tickets/queryKeys';
 
@@ -137,7 +137,7 @@ const TicketsPage = () => {
       </div>
       <div style={{ width: '60%', padding: '20px' }}>
         {selectedTicketId && !isLoadingDetail ? (
-          <TicketDetail ticketId={selectedTicketId} ticketDetail={ticketDetail} />
+          <TicketDetail ticketDetail={ticketDetail} />
         ) : selectedTicketId && isLoadingDetail ? (
           <div>Loading ticket details...</div>
         ) : (
