@@ -230,4 +230,82 @@
 - ✅ No console errors
 
 
+## Commit 5: Remove Redux and Use React useState in TicketFilters
+
+### Implementation Details
+
+**Files Modified:**
+- `src/containers/TicketFilters/index.tsx`
+
+**Files Deleted:**
+- `src/containers/TicketFilters/slice.ts`
+
+**Changes Made:**
+- ✅ Removed Redux imports and @ts-ignore comments
+- ✅ Replaced Redux hooks (useDispatch, useSelector) with React useState
+- ✅ Added `const [filter, setFilter] = useState('all')`
+- ✅ Changed `sortBy` to simple constant (no UI control to change it)
+- ✅ Updated `handleFilterChange` to call `setFilter()` instead of dispatch
+- ✅ Deleted unused Redux slice file (no other files import it)
+
+**Lines Changed:**
+- `TicketFilters/index.tsx`: Reduced from 29 lines with Redux stubs → 28 lines with clean useState
+
+### The Problem (Before)
+
+**Redux Was Stubbed Out:**
+- Redux is intentionally NOT installed (per assignment requirements)
+- Component had @ts-ignore comments and hardcoded values
+- `dispatch = null` (non-functional)
+- `filter = 'all'` (hardcoded, not stateful)
+- `sortBy = 'date'` (hardcoded, not stateful)
+- `handleFilterChange` did nothing (commented out dispatch)
+- Unnecessary `slice.ts` file with placeholder exports
+
+**Why This is Wrong:**
+- Code doesn't actually handle filter changes
+- TypeScript errors (@ts-ignore) hide type safety issues
+- Redux slice unreachable and unused
+- Component appears broken at runtime
+
+### The Solution (After)
+
+**Use React useState Instead:**
+- Remove Redux imports entirely
+- Add `useState` for filter state
+- `setFilter()` now handles filter dropdown changes
+- Keep `sortBy` as constant (no UI control)
+- Delete slice.ts (no longer needed)
+- Clean, functional component with zero TypeScript errors
+
+**Why This is Better:**
+- Component now actually works (filter dropdown is functional)
+- No more @ts-ignore comments
+- Simple, understandable state management
+- No external dependencies (Redux not installed anyway)
+- Follows React best practices for local component state
+
+### Testing Results
+
+**Lint Check:**
+- ✅ TicketFilters component passes lint (zero errors)
+- ✅ No unused variables or imports
+- ✅ TypeScript compilation successful
+
+**Manual Testing:**
+- ✅ Component renders at `/ticket-filters` without errors
+- ✅ Filter dropdown displays "all" as default
+- ✅ Clicking dropdown options updates the selected value
+- ✅ Current filter displays selected value correctly
+- ✅ Sort by displays "date" correctly
+- ✅ No console errors or warnings
+- ✅ No @ts-ignore comments remaining
+
+### Key Learning Points
+
+1. **Local State > Redux** - For component-only state, use useState
+2. **Remove Dependencies** - Delete slice.ts since nothing imports it
+3. **No Premature Setup** - Don't add libraries before you need them
+4. **Verify Imports** - Check what other files depend on before deleting
+
 
