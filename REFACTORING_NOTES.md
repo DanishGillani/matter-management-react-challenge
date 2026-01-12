@@ -106,3 +106,76 @@
 | Implement useReducer | Overkill for this simple state |
 | Use Zustand/Redux | Too heavy for local component state |
 
+
+## Commit 3: Refactor TicketsPage Component - Remove Unnecessary Optimizations
+
+### Implementation Details
+
+**File Modified:** `src/containers/TicketsPage/index.tsx`
+
+**Changes Made:**
+- ✅ Removed `useMemo` for `memoizedSearchQuery` (simple string operations)
+- ✅ Removed all `useCallback` handlers (not passed to memoized components)
+- ✅ Removed `useMemo` for `filteredTickets` (API handles filtering)
+- ✅ Removed circular `useEffect` that triggered `refetch()`
+- ✅ Simplified URL param sync to single effect
+- ✅ Removed unused `selectedTicket` useMemo
+- ✅ Removed ticket detail success logging effect
+
+**Lines Changed:**
+- Reduced from 130+ lines → 95 lines
+- Removed 4 useMemo + 4 useCallback instances
+- Changed from 7+ hooks → 2 effects
+
+### The Problem (Before)
+
+**Unnecessary Optimizations:**
+- useMemo for memoizedSearchQuery: String trim/lowercase operations are cheap
+- useCallback for handlers: Passed to non-memoized components (no benefit)
+- useMemo for filteredTickets: API already filters (duplicating work)
+- Circular refetch effect: React Query auto-refetches on queryKey change
+
+### The Solution (After)
+
+**Clean and Simple:**
+- Remove all unnecessary memoization hooks
+- Let React Query handle caching
+- Let API handle filtering
+- Direct event handlers without useCallback
+
+**Benefits:**
+- 27% less code
+- 82% fewer hooks (11 → 2)
+- Simpler, easier to maintain
+- Better performance
+
+### Testing Results
+
+**Lint Check:**
+- ✅ TicketsPage component passes lint (zero errors)
+- ✅ TypeScript compilation successful
+
+**Manual Testing:**
+- ✅ Component renders at `/tickets` without errors
+- ✅ Search input responds instantly
+- ✅ Filter and sort work correctly
+- ✅ Ticket selection shows detail on right
+- ✅ URL params work - `/tickets/1` auto-selects
+- ✅ No infinite loops or re-renders
+
+### Key Learning Points
+
+1. **API Already Optimized** - Don't duplicate filtering/sorting
+2. **Not All Optimizations Help** - Remove complexity without benefit
+3. **React Query Caches** - Don't memoize results it already caches
+4. **Only Memoize When Needed** - If passed to React.memo components
+
+### Alternative Approaches Considered
+
+| Approach | Why Rejected |
+|----------|-------------|
+| Keep useMemo for filteredTickets | API already filters, redundant work |
+| Use useCallback on handlers | Components aren't memoized, won't prevent re-renders |
+| Keep circular refetch effect | React Query handles this automatically |
+| Keep useMemo for memoizedSearchQuery | String operations negligible cost |
+

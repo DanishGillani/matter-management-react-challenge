@@ -9,113 +9,83 @@
  * 5. Extract shareable hooks and utilities
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import TicketList from '../../components/TicketList';
 import TicketDetail from '../../components/TicketDetail';
 import { fetchTickets, fetchTicketById } from '../../utils/api';
 
+/**
+ * COMMIT 3: Remove premature optimizations from TicketsPage
+ * 
+ * Changes:
+ * - Removed useMemo for memoizedSearchQuery (string operations are cheap)
+ * - Removed all useCallback handlers (not passed to memoized components)
+ * - Removed useMemo for filteredTickets (API already handles filtering via query params)
+ * - Removed circular useEffect that triggers refetch (queryKey change triggers refetch automatically)
+ * - Simplified URL param sync - single effect with minimal dependencies
+ * - Removed unused commented useMemo for selectedTicket
+ * - Removed unnecessary useEffect for ticket detail success logging
+ * - Added debounced search to prevent API call on every keystroke
+ * 
+ * Why:
+ * - The API already filters/sorts via query params - don't need frontend memoization
+ * - Simple event handlers to native elements don't need memoization
+ * - React Query automatically refetches when queryKey changes
+ * - Debouncing improves UX by not fetching on every keystroke
+ * 
+ * Trade-offs:
+ * - Slight delay in search results (300ms debounce) - acceptable for better UX
+ * - Handler function references change on every render (acceptable for non-memoized children)
+ * - No memoized computations (benefit: cleaner code, less complexity)
+ */
 const TicketsPage = () => {
   const { ticketId } = useParams<{ ticketId?: string }>();
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+  const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'date' | 'title'>('date');
 
-  // Unnecessary useMemo - this is just a string
-  const memoizedSearchQuery = useMemo(() => {
-    return searchQuery.trim().toLowerCase();
-  }, [searchQuery]);
+  // Debounce search input - only update query after user stops typing (300ms)
+  // This prevents API calls on every keystroke
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(searchInput);
+    }, 300);
 
-  // Unnecessary useCallback - this is passed to a regular component, not memoized
-  const handleTicketSelect = useCallback((id: string) => {
-    setSelectedTicketId(id);
-  }, []);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
-  // Unnecessary useCallback
-  const handleSearchChange = useCallback((value: string) => {
-    setSearchQuery(value);
-  }, []);
-
-  // Unnecessary useCallback
-  const handleFilterChange = useCallback((status: string) => {
-    setFilterStatus(status);
-  }, []);
-
-  // Unnecessary useCallback
-  const handleSortChange = useCallback((sort: 'date' | 'title') => {
-    setSortBy(sort);
-  }, []);
-
-  // Circular dependency issue - this useEffect depends on data that changes
-  const { data: ticketsData, isLoading, refetch } = useQuery({
+  // Fetch tickets - API handles filtering/sorting via queryKey
+  // No need to filter in frontend when server already does this
+  const { data: ticketsData, isLoading } = useQuery({
     queryKey: ['tickets', searchQuery, filterStatus, sortBy],
-    queryFn: () => fetchTickets({ search: searchQuery, status: filterStatus, sortBy }),
+    queryFn: () => fetchTickets({ 
+      search: searchQuery, 
+      status: filterStatus, 
+      sortBy 
+    }),
   });
 
-  // Unnecessary useMemo - simple array operations don't need memoization
-  const filteredTickets = useMemo(() => {
-    if (!ticketsData) return [];
-    
-    let filtered = ticketsData;
-    
-    if (memoizedSearchQuery) {
-      filtered = filtered.filter(ticket => 
-        ticket.title.toLowerCase().includes(memoizedSearchQuery)
-      );
-    }
-    
-    if (filterStatus !== 'all') {
-      filtered = filtered.filter(ticket => ticket.status === filterStatus);
-    }
-    
-    if (sortBy === 'date') {
-      filtered = [...filtered].sort((a, b) => 
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
-    } else {
-      filtered = [...filtered].sort((a, b) => a.title.localeCompare(b.title));
-    }
-    
-    return filtered;
-  }, [ticketsData, memoizedSearchQuery, filterStatus, sortBy]);
-
-  // Circular dependency - useEffect that depends on query result and triggers refetch
+  // Sync URL param (ticketId) to selected state
   useEffect(() => {
-    if (ticketsData && ticketsData.length === 0 && searchQuery) {
-      // This creates a circular dependency
-      refetch();
-    }
-  }, [ticketsData, searchQuery, refetch]);
-
-  // Another unnecessary useEffect - could use onSuccess callback instead
-  useEffect(() => {
-    if (ticketId && ticketId !== selectedTicketId) {
+    if (ticketId) {
       setSelectedTicketId(ticketId);
     }
-  }, [ticketId, selectedTicketId]);
+  }, [ticketId]);
 
-  // Unnecessary useMemo for selected ticket (unused - candidate should remove)
-  // const selectedTicket = useMemo(() => {
-  //   if (!selectedTicketId) return null;
-  //   return filteredTickets.find(t => t.id === selectedTicketId) || null;
-  // }, [selectedTicketId, filteredTickets]);
-
-  // Fetch ticket detail separately - should be using React Query properly
-  const { data: ticketDetail } = useQuery({
+  // Fetch ticket detail when selected
+  const { data: ticketDetail, isLoading: isLoadingDetail } = useQuery({
     queryKey: ['ticket', selectedTicketId],
     queryFn: () => fetchTicketById(selectedTicketId!),
     enabled: !!selectedTicketId,
   });
 
-  // Another unnecessary useEffect - handling success in useEffect instead of onSuccess
-  useEffect(() => {
-    if (ticketDetail) {
-      console.log('Ticket loaded:', ticketDetail.id);
-      // Some side effect that could be in onSuccess callback
-    }
-  }, [ticketDetail]);
+  if (isLoading && !ticketsData) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div style={{ display: 'flex', height: '100vh' }}>
@@ -125,13 +95,13 @@ const TicketsPage = () => {
           <input
             type="text"
             placeholder="Search tickets..."
-            value={searchQuery}
-            onChange={(e) => handleSearchChange(e.target.value)}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
             style={{ width: '100%', padding: '8px', marginBottom: '10px' }}
           />
           <select
             value={filterStatus}
-            onChange={(e) => handleFilterChange(e.target.value)}
+            onChange={(e) => setFilterStatus(e.target.value)}
             style={{ width: '100%', padding: '8px', marginBottom: '10px' }}
           >
             <option value="all">All Status</option>
@@ -141,7 +111,7 @@ const TicketsPage = () => {
           </select>
           <select
             value={sortBy}
-            onChange={(e) => handleSortChange(e.target.value as 'date' | 'title')}
+            onChange={(e) => setSortBy(e.target.value as 'date' | 'title')}
             style={{ width: '100%', padding: '8px' }}
           >
             <option value="date">Sort by Date</option>
@@ -152,15 +122,17 @@ const TicketsPage = () => {
           <div>Loading...</div>
         ) : (
           <TicketList
-            tickets={filteredTickets}
-            onSelect={handleTicketSelect}
+            tickets={ticketsData || []}
+            onSelect={setSelectedTicketId}
             selectedId={selectedTicketId}
           />
         )}
       </div>
       <div style={{ width: '60%', padding: '20px' }}>
-        {selectedTicketId ? (
+        {selectedTicketId && !isLoadingDetail ? (
           <TicketDetail ticketId={selectedTicketId} ticketDetail={ticketDetail} />
+        ) : selectedTicketId && isLoadingDetail ? (
+          <div>Loading ticket details...</div>
         ) : (
           <div>Select a ticket to view details</div>
         )}
